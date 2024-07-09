@@ -96,16 +96,26 @@
                     <input class="dis" type="text" v-model="formGoodsMarks2">
                 </div>
                 <div class="cmr-form-set">
-                    <label  :class="{alertfont:formGoodsMarks3 == ''}">Linia #3</label>
-                    <input class="dis" type="text" v-model="formGoodsMarks3">
+                    <div class="linecheck">
+                        <label>Linia #3</label>
+                        <input class="dis" type="checkbox" v-model="isLine3active" >
+                    </div>
+                    <input id="inputLine3" type="text" v-model="formGoodsMarks3">
                 </div>
                 <div class="cmr-form-set">
-                    <label  :class="{alertfont:formGoodsMarks4 == ''}">Linia #4</label>
-                    <input class="dis" type="text" v-model="formGoodsMarks4">
+                    <div class="linecheck">
+                        <label>Linia #4</label>
+                        <input class="dis" type="checkbox" v-model="isLine4active">
+                    </div>
+                    <input id="inputLine4" type="text" v-model="formGoodsMarks4">
                 </div>
                 <div class="cmr-form-set">
-                    <label>Linia #5</label>
-                    <input class="dis" type="text" v-model="formGoodsMarks5">
+                    <div class="linecheck">
+                        <label>Linia #5</label>
+                        <input class="dis" type="checkbox" v-model="isLine5active">
+                    </div>
+                    
+                    <input id="inputLine5" type="text" v-model="formGoodsMarks5">
                 </div>
 
                 <div class="cmrquest">
@@ -198,6 +208,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import download from 'downloadjs'
 import NavbarWarehouse from '../components/NavbarWarehouse.vue'
 import CBMcalculator from '../components/CBMcalculator.vue'
+// import cmrfile from '../assets/documents/cmr.pdf'
 
 export default {
     components:{NavbarWarehouse, CBMcalculator},
@@ -237,6 +248,9 @@ export default {
         const isDgd = ref(true)
         const isAdrRegulated = ref(true)
         const isOverpack = ref(true)
+        const isLine3active = ref(false)
+        const isLine4active = ref(false)
+        const isLine5active = ref(false)
 
         const formGoodsWeight = ref('')
         const formGoodsNet = ref('')
@@ -369,16 +383,26 @@ export default {
                 });
             })
         }
-        const pdfUrl = '/src/assets/documents/cmr.pdf'
+        // const pdfUrl = '/src/assets/documents/cmr.pdf'
+        const pdfUrl = '/cmr.pdf'
         let outputUint8Array = null
         onMounted(()=>{
-          getData()
-          toggleDisableInputs(true)
-            
+            getData()
+            toggleDisableInputs(true)
+            toggleDisableInputs345(true)
         })
+
+        const toggleDisableInputs345 = (flag)=>{
+            isLine3active.value = !flag
+            showDomElementById('inputLine3', flag)
+            isLine4active.value = !flag
+            showDomElementById('inputLine4', flag)
+            isLine5active.value = !flag
+            showDomElementById('inputLine5', flag)
+        }
         
         async function modifyPdf(pdfUrl) {
-            // console.log(client)
+            
             const pngUrl = '/src/assets/img/logoDSSEblue.png'
             const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer())
             const pictogramUrl = '/src/assets/img/ADR9.png'
@@ -474,18 +498,28 @@ export default {
                 page.drawText('Total quantity (Net. weight): '+ formGoodsNet.value.toString() + ' kg', { size: 9  })
                 page.moveTo(x, y - 385)
                 page.drawText('Ilosc calkowita (waga netto): '+ formGoodsNet.value.toString() + ' kg', { size: 9, color: rgb(0.40, 0.40, 0.40)  })
-                
-                page.moveTo(x, y - 400)
-                page.drawText(replace(formGoodsMarks3.value), { size: 9 })
-                page.moveTo(x, y - 410)
-                page.drawText(replace(formGoodsMarks4.value), { size: 9, color: rgb(0.40, 0.40, 0.40) })
-                page.moveTo(x, y - 425)
-                page.drawText(replace(formGoodsMarks5.value), { size: 9  })
+                if(isLine3active.value){
+                    page.moveTo(x, y - 400)
+                    page.drawText(replace(formGoodsMarks3.value), { size: 9 })
+                }
+                if(isLine4active.value){
+                    page.moveTo(x, y - 410)
+                    page.drawText(replace(formGoodsMarks4.value), { size: 9, color: rgb(0.40, 0.40, 0.40) })
+                }
+                if(isLine5active.value){
+                    page.moveTo(x, y - 425)
+                    page.drawText(replace(formGoodsMarks5.value), { size: 9  })
+                }
                 if(isOverpack.value){
                     page.moveTo(x, y - 440)
                     page.drawText('OVERPACK used: ' + formGoodsQty.value.toString()  + ' pallets', { size: 9 })
                     page.moveTo(x, y - 450)
                     page.drawText('Zastosowano opakowanie zbiorcze: ' + formGoodsQty.value.toString()  + ' palet', { size: 9, color: rgb(0.40, 0.40, 0.40) })
+                }else{
+                    page.moveTo(x + 210, y - 392)
+                    page.drawText(formGoodsQty.value.toString()  + ' PALLETS', { size: 14 })
+                    page.moveTo(x + 211 , y - 403)
+                    page.drawText(formGoodsQty.value.toString()  + ' PALET', { size: 9, color: rgb(0.40, 0.40, 0.40) })
                 }
                 if(shipment.value.containerNumber.length > 3){
                     page.moveTo(x, y - 470)
@@ -505,10 +539,10 @@ export default {
                 }
                 // 11 Weight
                 page.moveTo(x+400, y - 350)
-                page.drawText(formGoodsWeight.value.toString(), { size: 9 })
+                page.drawText(formGoodsWeight.value.toString(), { size: 11 })
                 //12 CBM
                 page.moveTo(x+470, y - 350)
-                page.drawText(formGoodsCBM.value.toString(), { size: 9 })
+                page.drawText(formGoodsCBM.value.toString(), { size: 11 })
                 //13 Senders instructions
                 if(isAdrRegulated.value){
                     page.moveTo(x-3, y - 540)
@@ -588,15 +622,26 @@ export default {
                 formSpedCarPlates.value = shipment.value.forwarder.carPlates
                 formSpedName.value = shipment.value.forwarder.firstName + ' ' + shipment.value.forwarder.lastName
                 formGoodsQty.value = shipment.value.palletQty
-                
-               
             }
+            
+        })
+        const showDomElementById = (id, flag)=>{
+            let domElement = document.getElementById(id)
+            if(domElement != null){
+                domElement.disabled = flag
+            }
+        }
+
+        const inputsWatcher = watchEffect(()=>{
+            showDomElementById('inputLine3', !isLine3active.value)
+            showDomElementById('inputLine4', !isLine4active.value)
+            showDomElementById('inputLine5', !isLine5active.value)
             
         })
 
        const resetForm = ()=>{
          formClientIndex.value = null
-
+         toggleDisableInputs345(true)
         // 1 - Sender
          formSenderName.value = 'Daicel Safety Systems Europe Sp z o.o.'
          formSenderStreet.value = 'ul. Sterefowa 6'
@@ -628,8 +673,10 @@ export default {
         x = !x
        }
        
+              
         onUnmounted(()=>{
             formWatcher()
+            inputsWatcher()
         })
         const handleCalculateCbm = (newCbm)=>{
             if(newCbm == false){newCbm  = 0}
@@ -651,7 +698,8 @@ export default {
                 formSenderName, formSenderStreet, formSenderCity, formSenderCountry,
                 formConsigneeName, formConsigneeStreet, formConsigneeCity, formConsigneeCountry,
                 formDestination, formAttachment1, formAttachment2,formLoadingPlace, 
-                formGoodsMarks1, formGoodsMarks2, formGoodsMarks3,formGoodsMarks4, formGoodsMarks5, isDgd,isAdrRegulated, isOverpack,
+                formGoodsMarks1, formGoodsMarks2, formGoodsMarks3,formGoodsMarks4, formGoodsMarks5, 
+                isDgd,isAdrRegulated, isOverpack, isLine3active, isLine4active, isLine5active,
                 formGoodsWeight, formGoodsCBM, formGoodsQty, formGoodsNet,
                 formSpedCarPlates, formSpedCompany, formSpedName,
                 handleShowCalc,
@@ -783,6 +831,14 @@ export default {
 .cmr-form .cmrquest .cmrquest-item input[type=checkbox]{
     transform: scale(1.6);    
     margin-top: 10px;
+}
+.cmr-form .linecheck{
+    display: flex;
+    justify-content: space-between;
+}
+.cmr-form .linecheck input{
+    width: 20px;
+    transform: scale(1.1);
 }
 .cmr-form-set .dim{
     display: grid;

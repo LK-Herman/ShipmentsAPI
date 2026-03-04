@@ -114,15 +114,34 @@
                         <label>Linia #5</label>
                         <input class="dis" type="checkbox" v-model="isLine5active">
                     </div>
-                    
                     <input id="inputLine5" type="text" v-model="formGoodsMarks5">
                 </div>
-
                 <div class="cmrquest">
                     <div class="cmrquest-item">
                         <input class="dis" type="checkbox" v-model="isDgd">
-                        <label @click="isDgd=!isDgd">UN 3268</label>
+                        <label @click="isDgd=!isDgd">DGD</label>
                     </div>
+                </div> 
+                <div class="cmr-form-set">
+                    <div class="linecheck">
+                        <label>Numer UN </label>
+                    </div>
+                    <input id="inputUN" type="text" v-model="formGoodsUN">
+                </div>
+                <div class="cmr-form-set">
+                    <div class="linecheck">
+                        <label>Klasa </label>
+                    </div>
+                    <input id="inputClassUN" type="text" v-model="formGoodsClassUN">
+                </div>
+                <div class="cmr-form-set">
+                    <div class="linecheck">
+                        <label>Grupa pakowania </label>
+                    </div>
+                    <input id="inputPGUN" type="text" v-model="formGoodsPGUN">
+                </div>
+
+                <div class="cmrquest">
                     <div class="cmrquest-item">
                         <input class="dis" type="checkbox" v-model="isAdrRegulated">
                         <label @click="isAdrRegulated = !isAdrRegulated">Klauzula ADR: Przewóz zgodny z 1.1.4.2.1 </label>
@@ -183,7 +202,6 @@
                 </div>
                 
             </div>
-            
            
             </div>
         </form>
@@ -226,7 +244,7 @@ export default {
 
         // 1 - Sender
         const formSenderName = ref('Daicel Safety Systems Europe Sp z o.o.')
-        const formSenderStreet = ref('ul. Sterefowa 6')
+        const formSenderStreet = ref('ul. Strefowa 6')
         const formSenderCity = ref('58-130 Żarów')
         const formSenderCountry = ref('PL')
         // 2 - Consignee
@@ -245,6 +263,9 @@ export default {
         const formGoodsMarks3 = ref('1000 Fiberboard boxes (4G)')
         const formGoodsMarks4 = ref('1000 Skrzyn tekturowych (4G)')
         const formGoodsMarks5 = ref('')
+        const formGoodsUN = ref('3268')
+        const formGoodsClassUN = ref('9')
+        const formGoodsPGUN = ref('N/A')
         const isDgd = ref(true)
         const isAdrRegulated = ref(true)
         const isOverpack = ref(true)
@@ -304,7 +325,7 @@ export default {
                         sentenceCharArray[index] = 'O'
                         break;
                     case 'ś':
-                        sentenceCharArray[index] = 'ś'
+                        sentenceCharArray[index] = 's'
                         break;
                     case 'Ś':
                         sentenceCharArray[index] = 'S'
@@ -399,6 +420,10 @@ export default {
             showDomElementById('inputLine4', flag)
             isLine5active.value = !flag
             showDomElementById('inputLine5', flag)
+            isDgd.value = !flag
+            showDomElementById('inputUN', flag)
+            showDomElementById('inputClassUN', flag)
+            showDomElementById('inputPGUN', flag)
         }
         
         async function modifyPdf(pdfUrl) {
@@ -531,11 +556,11 @@ export default {
                 }
                 if(isDgd.value){
                     page.moveTo(x+20, y - 507)
-                    page.drawText('9', { size: 9 })
+                    page.drawText(formGoodsClassUN.value, { size: 9 })
                     page.moveTo(x+110, y - 507)
-                    page.drawText('3268', { size: 9 })
+                    page.drawText(formGoodsUN.value, { size: 9 })
                     page.moveTo(x+200, y - 507)
-                    page.drawText('N/A', { size: 9 })
+                    page.drawText(formGoodsPGUN.value, { size: 9 })
                 }
                 // 11 Weight
                 page.moveTo(x+400, y - 350)
@@ -549,23 +574,23 @@ export default {
                     page.drawText('Przewoz zgodny z 1.1.4.2.1', { size: 8, color: rgb(0.36, 0.36, 0.36) })
                     page.moveTo(x-3, y - 550)
                     page.drawText('Carriage in accordance with 1.1.4.2.1', { size: 8 })
+                    page.moveTo(x-3, y - 557)
+                    page.drawText('__________________________________________________', { size: 8, color: rgb(0.36, 0.36, 0.36) })
+                    page.moveTo(x-3, y - 570)
+                    page.drawText('Ilosc calkowita dla 4 kategorii transportowej (1.1.3.6.3): ' + formGoodsNet.value.toString(), { size: 8, color: rgb(0.36, 0.36, 0.36) })
+                    page.moveTo(x-3, y - 580)
+                    page.drawText('Total quantity for transport category 4 (1.1.3.6.3): ' + formGoodsNet.value.toString(), { size: 8 })
+                    page.moveTo(x-3, y - 592)
+                    page.drawText('Wartosc obliczona dla 4 kategorii transportowej (1.1.3.6.4): 0', { size: 8, color: rgb(0.36, 0.36, 0.36) })
+                    page.moveTo(x-3, y - 602)
+                    page.drawText('Value calculated for transport category 4 (1.1.3.6.4): 0', { size: 8 })
+                    page.moveTo(x-3, y - 614)
+                    page.drawText('Suma wartosci obliczonych dla wszystkich kategorii', { size: 8, color: rgb(0.36, 0.36, 0.36) })
+                    page.moveTo(x-3, y - 624)
+                    page.drawText('transportowych (1.1.3.6.4): 0', { size: 8, color: rgb(0.36, 0.36, 0.36) })
+                    page.moveTo(x-3, y - 634)
+                    page.drawText('Total value calculeted for all transport categories: 0', { size: 8 })
                 }
-                page.moveTo(x-3, y - 557)
-                page.drawText('__________________________________________________', { size: 8, color: rgb(0.36, 0.36, 0.36) })
-                page.moveTo(x-3, y - 570)
-                page.drawText('Ilosc calkowita dla 4 kategorii transportowej (1.1.3.6.3): ' + formGoodsNet.value.toString(), { size: 8, color: rgb(0.36, 0.36, 0.36) })
-                page.moveTo(x-3, y - 580)
-                page.drawText('Total quantity for transport category 4 (1.1.3.6.3): ' + formGoodsNet.value.toString(), { size: 8 })
-                page.moveTo(x-3, y - 592)
-                page.drawText('Wartosc obliczona dla 4 kategorii transportowej (1.1.3.6.4): 0', { size: 8, color: rgb(0.36, 0.36, 0.36) })
-                page.moveTo(x-3, y - 602)
-                page.drawText('Value calculated for transport category 4 (1.1.3.6.4): 0', { size: 8 })
-                page.moveTo(x-3, y - 614)
-                page.drawText('Suma wartosci obliczonych dla wszystkich kategorii', { size: 8, color: rgb(0.36, 0.36, 0.36) })
-                page.moveTo(x-3, y - 624)
-                page.drawText('transportowych (1.1.3.6.4): 0', { size: 8, color: rgb(0.36, 0.36, 0.36) })
-                page.moveTo(x-3, y - 634)
-                page.drawText('Total value calculeted for all transport categories: 0', { size: 8 })
                 //21 Established in
                 page.moveTo(x, y - 724)
                 page.drawText(replace(formLoadingPlace.value), { size: 9 })
@@ -636,6 +661,9 @@ export default {
             showDomElementById('inputLine3', !isLine3active.value)
             showDomElementById('inputLine4', !isLine4active.value)
             showDomElementById('inputLine5', !isLine5active.value)
+            showDomElementById('inputUN', !isDgd.value)
+            showDomElementById('inputClassUN', !isDgd.value)
+            showDomElementById('inputPGUN', !isDgd.value)
             
         })
 
@@ -644,7 +672,7 @@ export default {
          toggleDisableInputs345(true)
         // 1 - Sender
          formSenderName.value = 'Daicel Safety Systems Europe Sp z o.o.'
-         formSenderStreet.value = 'ul. Sterefowa 6'
+         formSenderStreet.value = 'ul. Strefowa 6'
          formSenderCity.value = '58-130 Żarów'
          formSenderCountry.value ='PL'
         // 2 - Consignee
@@ -668,6 +696,7 @@ export default {
                 for (let index = 0; index < domElements.length; index++) {
                     domElements[index].disabled = value
                 }
+                isDgd.value = true
        }
        const toggleCheckbox = (x) =>{
         x = !x
@@ -698,7 +727,7 @@ export default {
                 formSenderName, formSenderStreet, formSenderCity, formSenderCountry,
                 formConsigneeName, formConsigneeStreet, formConsigneeCity, formConsigneeCountry,
                 formDestination, formAttachment1, formAttachment2,formLoadingPlace, 
-                formGoodsMarks1, formGoodsMarks2, formGoodsMarks3,formGoodsMarks4, formGoodsMarks5, 
+                formGoodsMarks1, formGoodsMarks2, formGoodsMarks3,formGoodsMarks4, formGoodsMarks5, formGoodsUN, formGoodsClassUN, formGoodsPGUN,
                 isDgd,isAdrRegulated, isOverpack, isLine3active, isLine4active, isLine5active,
                 formGoodsWeight, formGoodsCBM, formGoodsQty, formGoodsNet,
                 formSpedCarPlates, formSpedCompany, formSpedName,

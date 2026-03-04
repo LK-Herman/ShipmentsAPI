@@ -47,7 +47,7 @@
     </div>
     <div class="ver">
         <p>
-            UPDATED: 2024-07-05
+            UPDATED: 2026-03-04
         </p>
     </div>
 
@@ -75,12 +75,14 @@ export default {
     transition: 200ms ease-in;
 }
 .home-screen.back01{
-    background-image: linear-gradient(to right, #202635,#303552, #202635), url('../assets/img/back03.jpg');
+    background-image: linear-gradient(to right, #202635,#303552, #202635), url('../assets/img/back01.jpg');
     background-blend-mode: multiply;
+    background-size: cover;
 }
 .home-screen.back02{
     background-image: linear-gradient(to right, #202635,#303552, #202635), url('../assets/img/back02.jpg');
     background-blend-mode: multiply;
+    background-size: cover;
 }
 .home-desc{
     display: flex;

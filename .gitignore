@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Lokalne ustawienia z danymi wrażliwymi (connection strings, hasła)
+appsettings.Development.json
+
+# Vite cache
+.vite/

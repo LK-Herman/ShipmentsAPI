@@ -38,6 +38,8 @@ namespace ShipmentsAPI
             CreateMap<CreateStatusDto, Status>();
             CreateMap<CreateWarehouseAreaDto, WarehouseArea>();
             CreateMap<CreatePurchaseOrderDto, PurchaseOrder>();
+            CreateMap<CmrData, CmrDataDto>();
+            CreateMap<CreateCmrDataDto, CmrData>();
         }
 
         //private List<PurchaseOrderDto> MapOrdersInShipment(Shipment shipment, ShipmentDto shipmentDto)

@@ -18,6 +18,7 @@ namespace ShipmentsAPI.EFDbContext
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<Status> Statuses { get; set; }
         public DbSet<WarehouseArea> WarehouseAreas { get; set; }
+        public DbSet<CmrData> CmrData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +35,22 @@ namespace ShipmentsAPI.EFDbContext
                 .Property(r => r.ETD)
                 .IsRequired()
                 .HasMaxLength(50);
+
+            modelBuilder.Entity<CmrData>()
+                .HasIndex(x => new { x.ShipmentId, x.CustomerId })
+                .IsUnique();
+
+            modelBuilder.Entity<CmrData>()
+                .HasOne(x => x.Shipment)
+                .WithMany()
+                .HasForeignKey(x => x.ShipmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CmrData>()
+                .HasOne(x => x.Customer)
+                .WithMany()
+                .HasForeignKey(x => x.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

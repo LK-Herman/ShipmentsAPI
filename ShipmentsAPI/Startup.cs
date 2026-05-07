@@ -38,7 +38,7 @@ namespace ShipmentsAPI
             services.AddControllers();
             services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
             services.AddDbContext<ShipmentsDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("ShipmentsDbConnectionAsus")));
+                options.UseSqlServer(Configuration.GetConnectionString("ShipmentsDbConnection")));
             services.AddScoped<ShipmentsDataSeeder>();
             services.AddAutoMapper(this.GetType().Assembly);
             services.AddScoped<ICustomerService, CustomerService>();
@@ -47,6 +47,7 @@ namespace ShipmentsAPI
             services.AddScoped<IWarehouseAreaService, WarehouseAreaService >();
             services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
             services.AddScoped<IShipmentService, ShipmentService>();
+            services.AddScoped<ICmrDataService, CmrDataService>();
             services.AddScoped<IValidator<QueryShipments>, QueryShipmentsValidator>();
             services.AddScoped<IValidator<QueryForwarders>, QueryForwardersValidator>();
             services.AddScoped<IValidator<QueryCustomers>, QueryCustomersValidator>();
@@ -68,7 +69,7 @@ namespace ShipmentsAPI
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ShipmentsDataSeeder seeder)
         {
             app.UseCors("FrontEndClient");
-            seeder.Seed();
+            //seeder.Seed();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

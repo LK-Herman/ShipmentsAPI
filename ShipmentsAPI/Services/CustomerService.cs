@@ -76,7 +76,6 @@ namespace ShipmentsAPI.Services
                     { nameof(Customer.CountryAddress), t => t.CountryAddress },
                     { nameof(Customer.ZipCodeAddress), t => t.ZipCodeAddress },
                     { nameof(Customer.StreetAddress), t => t.StreetAddress },
-
                 };
 
                 var selectedColumn = columnsSelector[query.SortBy];

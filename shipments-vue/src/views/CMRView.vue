@@ -83,7 +83,6 @@
                 </div>
 <!-- </span> -->
             </div>    
-            
             <!-- 2 column -->
             <div>
                 <h3>6 - Cechy i numery towaru</h3>
@@ -126,21 +125,20 @@
                     <div class="linecheck">
                         <label>Numer UN </label>
                     </div>
-                    <input id="inputUN" type="text" v-model="formGoodsUN">
+                    <input id="inputUN"  type="text" v-model="formGoodsUN">
                 </div>
                 <div class="cmr-form-set">
                     <div class="linecheck">
                         <label>Klasa </label>
                     </div>
-                    <input id="inputClassUN" type="text" v-model="formGoodsClassUN">
+                    <input id="inputClassUN" class="dis" type="text" v-model="formGoodsClassUN">
                 </div>
                 <div class="cmr-form-set">
                     <div class="linecheck">
                         <label>Grupa pakowania </label>
                     </div>
-                    <input id="inputPGUN" type="text" v-model="formGoodsPGUN">
+                    <input id="inputPGUN" class="dis" type="text" v-model="formGoodsPGUN">
                 </div>
-
                 <div class="cmrquest">
                     <div class="cmrquest-item">
                         <input class="dis" type="checkbox" v-model="isAdrRegulated">
@@ -151,13 +149,11 @@
                         <label @click="isOverpack = !isOverpack">Zastosowano opakowanie zbiorcze OVERPACK.</label>
                     </div>
                 </div>
-
-                    <h3>7 - Ilość</h3>
-                    <div class="cmr-form-set">
-                        <label :class="{alertfont:formGoodsQty == ''}">Iość palet (szt)</label>
-                        <input class="dis" type="text" v-model="formGoodsQty">
-                    </div>
-                
+                <h3>7 - Ilość</h3>
+                <div class="cmr-form-set">
+                    <label :class="{alertfont:formGoodsQty == ''}">Iość palet (szt)</label>
+                    <input class="dis" type="text" v-model="formGoodsQty">
+                </div>
                 <h3>11 - Waga</h3>
                 <div class="cmr-form-set">
                     <label :class="{alertfont:formGoodsNet == ''}">Waga netto towaru(kg)</label>
@@ -195,9 +191,12 @@
                 <div v-if="formClientIndex != null" class="double-btns">
                     <button class="btn btn-cmr" @click="showPdf()"> Pokaż CMR</button>
                     <button class="btn btn-cmr" @click="downloadPdf()">Pobierz CMR </button>
+                    <button class="btn btn-cmr save" @click="handleSaveCmr()" :disabled="isSaving">{{ isSaving ? 'Zapisywanie...' : 'Zapisz CMR' }}</button>
                     <button class="btn btn-cmr reset" @click="resetForm()">Anuluj</button>
                 </div>
-                <div v-else class="no-btns">
+                <div v-if="saveResult === 'success'" class="save-msg save-ok">{{ saveMessage }}</div>
+                <div v-if="saveResult === 'error'" class="save-msg save-err">{{ saveMessage }}</div>
+                <div v-if="formClientIndex == null" class="no-btns">
                     <p>Wybierz klienta, dla którego chcesz wypełnić list przewozowy.</p>
                 </div>
                 
@@ -220,6 +219,8 @@
 import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import getShipmentById from '../js-components/getShipmentById'
 import getAllCustomers from '../js-components/getAllCustomers'
+import getCmrData from '../js-components/getCmrData'
+import saveCmrData from '../js-components/saveCmrData'
 import { useLinksStore } from '../stores/linksStore.js'
 import moment from 'moment/dist/moment'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -236,6 +237,8 @@ export default {
         const clients = ref([])
         const { loadShipment, error, shipment, isPending} = getShipmentById(linksStore.url)
         const { loadAllCustomers, error:customersError, customers} = getAllCustomers(linksStore.url)
+        const { loadCmrData, cmrData } = getCmrData(linksStore.url)
+        const { saveCmr, error: saveError } = saveCmrData(linksStore.url)
         let singleCustomer
         const isShown = ref(false)
 
@@ -283,6 +286,10 @@ export default {
         const formSpedCompany = ref('')
         const formSpedName = ref('')
         const formSpedCarPlates = ref('')
+
+        const isSaving = ref(false)
+        const saveResult = ref(null)
+        const saveMessage = ref('')
 
         function replace(sentence) {
             let sentenceCharArray = sentence.split("")
@@ -635,7 +642,7 @@ export default {
         const formWatcher = watch((formClientIndex), () => {
             if(formClientIndex.value != null){
                 toggleDisableInputs(false)
-
+                toggleDisableInputs345(false)
                 formConsigneeName.value = clients.value[formClientIndex.value].name
                 formConsigneeStreet.value = clients.value[formClientIndex.value].streetAddress
                 formConsigneeCity.value = clients.value[formClientIndex.value].zipCodeAddress + ' ' + clients.value[formClientIndex.value].cityAddress
@@ -647,8 +654,48 @@ export default {
                 formSpedCarPlates.value = shipment.value.forwarder.carPlates
                 formSpedName.value = shipment.value.forwarder.firstName + ' ' + shipment.value.forwarder.lastName
                 formGoodsQty.value = shipment.value.palletQty
+
+                saveResult.value = null
+                const clientId = clients.value[formClientIndex.value].id
+                loadCmrData(props.shipmentId, clientId).then(() => {
+                    if (cmrData.value !== null) {
+                        formSenderName.value = cmrData.value.senderName
+                        formSenderStreet.value = cmrData.value.senderStreet
+                        formSenderCity.value = cmrData.value.senderCity
+                        formSenderCountry.value = cmrData.value.senderCountry
+                        formConsigneeName.value = cmrData.value.consigneeName
+                        formConsigneeStreet.value = cmrData.value.consigneeStreet
+                        formConsigneeCity.value = cmrData.value.consigneeCity
+                        formConsigneeCountry.value = cmrData.value.consigneeCountry
+                        formDestination.value = cmrData.value.destination
+                        formLoadingPlace.value = cmrData.value.loadingPlace
+                        formAttachment1.value = cmrData.value.attachment1
+                        formAttachment2.value = cmrData.value.attachment2
+                        formGoodsMarks1.value = cmrData.value.goodsMarks1
+                        formGoodsMarks2.value = cmrData.value.goodsMarks2
+                        formGoodsMarks3.value = cmrData.value.goodsMarks3
+                        formGoodsMarks4.value = cmrData.value.goodsMarks4
+                        formGoodsMarks5.value = cmrData.value.goodsMarks5
+                        formGoodsUN.value = cmrData.value.goodsUN
+                        formGoodsClassUN.value = cmrData.value.goodsClassUN
+                        formGoodsPGUN.value = cmrData.value.goodsPGUN
+                        isDgd.value = cmrData.value.isDgd
+                        isLine3active.value = cmrData.value.isLine3Active
+                        isLine4active.value = cmrData.value.isLine4Active
+                        isLine5active.value = cmrData.value.isLine5Active
+                        isAdrRegulated.value = cmrData.value.isAdrRegulated
+                        isOverpack.value = cmrData.value.isOverpack
+                        formGoodsQty.value = cmrData.value.goodsQty
+                        formGoodsNet.value = cmrData.value.goodsNet
+                        formGoodsWeight.value = cmrData.value.goodsWeight
+                        formGoodsCBM.value = cmrData.value.goodsCBM
+                        formSpedCompany.value = cmrData.value.spedCompany
+                        formSpedName.value = cmrData.value.spedName
+                        formSpedCarPlates.value = cmrData.value.spedCarPlates
+                    }
+                })
             }
-            
+
         })
         const showDomElementById = (id, flag)=>{
             let domElement = document.getElementById(id)
@@ -680,16 +727,15 @@ export default {
          formConsigneeStreet.value = ''
          formConsigneeCity.value = ''
          formConsigneeCountry.value = ''
-        
          formDestination.value = ''
          formLoadingPlace.value = ''
          
         //6 Goods
          formGoodsMarks1.value = 'UN 3268 SAFETY DEVICES, CLASS 9, (E)'
          formGoodsMarks2.value = 'UN 3268 URZĄDZENIA BEZPIECZEŃSTWA, KLASA 9, (E)'
-         isDgd.value = true
-         
          toggleDisableInputs(true)
+         isDgd.value = false;
+         
        }
        const toggleDisableInputs = (value)=>{
          let domElements = document.getElementsByClassName("dis")
@@ -701,8 +747,58 @@ export default {
        const toggleCheckbox = (x) =>{
         x = !x
        }
-       
-              
+                     
+        const handleSaveCmr = async () => {
+            isSaving.value = true
+            saveResult.value = null
+            const payload = {
+                shipmentId: props.shipmentId,
+                customerId: clients.value[formClientIndex.value].id,
+                senderName: formSenderName.value,
+                senderStreet: formSenderStreet.value,
+                senderCity: formSenderCity.value,
+                senderCountry: formSenderCountry.value,
+                consigneeName: formConsigneeName.value,
+                consigneeStreet: formConsigneeStreet.value,
+                consigneeCity: formConsigneeCity.value,
+                consigneeCountry: formConsigneeCountry.value,
+                destination: formDestination.value,
+                loadingPlace: formLoadingPlace.value,
+                attachment1: formAttachment1.value,
+                attachment2: formAttachment2.value,
+                goodsMarks1: formGoodsMarks1.value,
+                goodsMarks2: formGoodsMarks2.value,
+                goodsMarks3: formGoodsMarks3.value,
+                goodsMarks4: formGoodsMarks4.value,
+                goodsMarks5: formGoodsMarks5.value,
+                goodsUN: formGoodsUN.value,
+                goodsClassUN: formGoodsClassUN.value,
+                goodsPGUN: formGoodsPGUN.value,
+                isDgd: isDgd.value,
+                isLine3Active: isLine3active.value,
+                isLine4Active: isLine4active.value,
+                isLine5Active: isLine5active.value,
+                isAdrRegulated: isAdrRegulated.value,
+                isOverpack: isOverpack.value,
+                goodsQty: formGoodsQty.value !== null ? String(formGoodsQty.value) : '',
+                goodsNet: formGoodsNet.value,
+                goodsWeight: formGoodsWeight.value,
+                goodsCBM: formGoodsCBM.value,
+                spedCompany: formSpedCompany.value,
+                spedName: formSpedName.value,
+                spedCarPlates: formSpedCarPlates.value
+            }
+            await saveCmr(payload)
+            if (saveError.value) {
+                saveResult.value = 'error'
+                saveMessage.value = 'Błąd zapisu danych CMR.'
+            } else {
+                saveResult.value = 'success'
+                saveMessage.value = 'Dane CMR zostały zapisane.'
+            }
+            isSaving.value = false
+        }
+
         onUnmounted(()=>{
             formWatcher()
             inputsWatcher()
@@ -734,7 +830,9 @@ export default {
                 handleShowCalc,
                 handleCalculateCbm,
                 showCalcFlag,
-                toggleCheckbox
+                toggleCheckbox,
+                handleSaveCmr,
+                isSaving, saveResult, saveMessage
 
             }
     }
@@ -942,6 +1040,29 @@ export default {
     font-size: 0.6vw;
 }
 .alertfont{
+    color: #fc9595;
+}
+.cmr-form .save{
+    background: linear-gradient(to right bottom, #4caf50, #2e7d32);
+    color: #fff;
+}
+.cmr-form .save:hover{
+    background: linear-gradient(to right bottom, #a1ff6a, #4caf50);
+}
+.cmr-form .save:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.save-msg{
+    font-size: 0.7vw;
+    font-weight: 200;
+    text-align: center;
+    margin: 0.5vh 0;
+}
+.save-ok{
+    color: #a1ff6a;
+}
+.save-err{
     color: #fc9595;
 }
 

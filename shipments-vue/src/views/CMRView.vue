@@ -227,6 +227,9 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import download from 'downloadjs'
 import NavbarWarehouse from '../components/NavbarWarehouse.vue'
 import CBMcalculator from '../components/CBMcalculator.vue'
+import logoUrl from '@/assets/img/logoDSSEblue.png'
+import pictogramUrl from '@/assets/img/ADR9.png'
+
 // import cmrfile from '../assets/documents/cmr.pdf'
 
 export default {
@@ -433,12 +436,16 @@ export default {
             showDomElementById('inputPGUN', flag)
         }
         
+       
         async function modifyPdf(pdfUrl) {
             
             const pngUrl = '/src/assets/img/logoDSSEblue.png'
-            const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer())
-            const pictogramUrl = '/src/assets/img/ADR9.png'
-            const pictogramImageBytes = await fetch(pictogramUrl).then((res) => res.arrayBuffer())
+               //const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer())
+            const pngImageBytes = await fetch(logoUrl).then(res => res.arrayBuffer())
+               //const pictogramUrl = '/src/assets/img/ADR9.png'
+               //const pictogramImageBytes = await fetch(pictogramUrl).then((res) => res.arrayBuffer())
+            const pictogramImageBytes = await fetch(pictogramUrl).then(res => res.arrayBuffer())
+            
 
             const existingPdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer())
             const pdfDoc = await PDFDocument.load(existingPdfBytes)
@@ -452,6 +459,8 @@ export default {
             const pdfBytes = await pdfDoc.save().then(res => outputUint8Array = res)
             return pdfBytes
         }
+
+
         const fillEachPdfPage = (pages, font, pngImage)=>{
             const pngDims = pngImage.scale(0.25)
             // const pictogramDims = pngPictogram.scale(0.09)
@@ -582,6 +591,7 @@ export default {
                     page.moveTo(x-3, y - 550)
                     page.drawText('Carriage in accordance with 1.1.4.2.1', { size: 8 })
                     page.moveTo(x-3, y - 557)
+                }
                     page.drawText('__________________________________________________', { size: 8, color: rgb(0.36, 0.36, 0.36) })
                     page.moveTo(x-3, y - 570)
                     page.drawText('Ilosc calkowita dla 4 kategorii transportowej (1.1.3.6.3): ' + formGoodsNet.value.toString(), { size: 8, color: rgb(0.36, 0.36, 0.36) })
@@ -597,7 +607,6 @@ export default {
                     page.drawText('transportowych (1.1.3.6.4): 0', { size: 8, color: rgb(0.36, 0.36, 0.36) })
                     page.moveTo(x-3, y - 634)
                     page.drawText('Total value calculeted for all transport categories: 0', { size: 8 })
-                }
                 //21 Established in
                 page.moveTo(x, y - 724)
                 page.drawText(replace(formLoadingPlace.value), { size: 9 })
